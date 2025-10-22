@@ -1,330 +1,235 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import { Card } from '@/components/ui/card';
 
-interface Prize {
-  id: number;
-  name: string;
-  icon: string;
-  color: string;
-}
+const categories = [
+  { id: 'cleaning', name: 'Клининг', icon: 'Sparkles' },
+  { id: 'beauty', name: 'Маникюр', icon: 'Scissors' },
+  { id: 'repair', name: 'Ремонт', icon: 'Wrench' },
+  { id: 'plumbing', name: 'Сантехника', icon: 'Droplet' },
+  { id: 'electric', name: 'Электрика', icon: 'Zap' },
+  { id: 'moving', name: 'Переезд', icon: 'Truck' },
+];
 
 const Index = () => {
-  const [isAuth, setIsAuth] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [timer, setTimer] = useState(0);
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [rotation, setRotation] = useState(0);
-  const [wonPrize, setWonPrize] = useState<Prize | null>(null);
-
-  const prizes: Prize[] = [
-    { id: 1, name: 'iPhone 15 Pro', icon: 'Smartphone', color: '#9b87f5' },
-    { id: 2, name: 'AirPods Pro', icon: 'Headphones', color: '#FFD700' },
-    { id: 3, name: 'MacBook Air', icon: 'Laptop', color: '#FF6B6B' },
-    { id: 4, name: '500₽', icon: 'Coins', color: '#4ECDC4' },
-    { id: 5, name: 'Apple Watch', icon: 'Watch', color: '#95E1D3' },
-    { id: 6, name: '1000₽', icon: 'Wallet', color: '#F38181' },
-    { id: 7, name: 'iPad Pro', icon: 'Tablet', color: '#AA96DA' },
-    { id: 8, name: 'Бесплатная попытка', icon: 'Gift', color: '#FCBAD3' },
-    { id: 9, name: '2000₽', icon: 'CreditCard', color: '#FFFFD2' },
-    { id: 10, name: 'AirTag', icon: 'Radio', color: '#A8D8EA' },
-  ];
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && startTime) {
-      interval = setInterval(() => {
-        setTimer(Date.now() - startTime);
-      }, 10);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, startTime]);
-
-  const handleStart = () => {
-    setIsPlaying(true);
-    setStartTime(Date.now());
-    setTimer(0);
-    setWonPrize(null);
-  };
-
-  const handleStop = () => {
-    if (!startTime) return;
-    
-    setIsPlaying(false);
-    const elapsed = Date.now() - startTime;
-    const targetTime = 3000;
-    const tolerance = 50;
-    
-    if (Math.abs(elapsed - targetTime) <= tolerance) {
-      setAttempts(attempts - 1);
-      spinWheel();
-    } else {
-      setAttempts(attempts - 1);
-      setWonPrize(null);
-    }
-  };
-
-  const spinWheel = () => {
-    setIsSpinning(true);
-    const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
-    const prizeIndex = prizes.indexOf(randomPrize);
-    const degreesPerPrize = 360 / prizes.length;
-    const targetRotation = 360 * 5 + (prizeIndex * degreesPerPrize);
-    
-    setRotation(targetRotation);
-    
-    setTimeout(() => {
-      setIsSpinning(false);
-      setWonPrize(randomPrize);
-    }, 4000);
-  };
-
-  const handleBuySubscription = () => {
-    setAttempts(1);
-    setIsAuth(true);
-  };
-
-  const handleBuyAttempts = () => {
-    setAttempts(attempts + 1);
-  };
-
-  if (!isAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-accent/20 to-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8">
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon name="Gift" size={40} className="text-white" />
-              </div>
-              <h1 className="text-3xl font-heading font-bold mb-2">Колесо Подарков</h1>
-              <p className="text-muted-foreground">Испытай удачу и выиграй крутые призы!</p>
-            </div>
-
-            <div className="space-y-4">
-              <Button 
-                size="lg" 
-                className="w-full h-14 text-lg font-semibold"
-                onClick={handleBuySubscription}
-              >
-                <Icon name="Sparkles" size={20} className="mr-2" />
-                Купить подписку за 250₽
-              </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">или войти</span>
-                </div>
-              </div>
-
-              <Button variant="outline" size="lg" className="w-full h-12">
-                <Icon name="Mail" size={18} className="mr-2" />
-                Войти через Email
-              </Button>
-            </div>
-
-            <div className="mt-8 p-4 bg-muted rounded-xl">
-              <div className="flex items-start gap-3">
-                <Icon name="Info" size={20} className="text-primary flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-muted-foreground">
-                  <p className="font-semibold text-foreground mb-1">Как играть?</p>
-                  <p>1. Купи подписку и получи первую попытку</p>
-                  <p>2. Останови таймер на отметке 3.00 секунды</p>
-                  <p>3. Крути колесо и выигрывай призы!</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-accent/20 to-background">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                <Icon name="Gift" className="text-white" size={20} />
-              </div>
-              <span className="text-xl font-heading font-bold">Колесо Подарков</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Badge variant="secondary" className="h-10 px-4 text-base font-semibold gap-2">
-                <Icon name="Ticket" size={18} />
-                {attempts} попыток
-              </Badge>
-              <Button size="sm" variant="outline">
-                <Icon name="User" size={16} className="mr-2" />
-                Профиль
-              </Button>
-            </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-white sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon name="Briefcase" className="text-primary" size={32} />
+            <span className="text-2xl font-bold text-primary">Сервис Агрегатор</span>
           </div>
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="#" className="text-foreground hover:text-primary transition">Услуги</a>
+            <a href="#" className="text-foreground hover:text-primary transition">Стать мастером</a>
+            <a href="#" className="text-foreground hover:text-primary transition">О нас</a>
+          </nav>
+          <Button>Войти</Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            <div className="space-y-6">
-              <Card className="overflow-hidden">
-                <CardContent className="p-8">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl font-heading font-bold mb-2">Игровая зона</h2>
-                    <p className="text-muted-foreground">Останови таймер ровно на 3.00 секунды</p>
-                  </div>
-
-                  <div className="relative w-64 h-64 mx-auto mb-8">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
-                    <div className="absolute inset-4 bg-card rounded-full flex items-center justify-center border-4 border-primary">
-                      <div className="text-center">
-                        <div className="text-6xl font-heading font-bold mb-2">
-                          {(timer / 1000).toFixed(2)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">секунды</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {!isPlaying ? (
-                      <Button 
-                        size="lg" 
-                        className="w-full h-16 text-xl font-bold"
-                        onClick={handleStart}
-                        disabled={attempts === 0 || isSpinning}
-                      >
-                        <Icon name="Play" size={24} className="mr-2" />
-                        Старт
-                      </Button>
-                    ) : (
-                      <Button 
-                        size="lg" 
-                        variant="destructive"
-                        className="w-full h-16 text-xl font-bold"
-                        onClick={handleStop}
-                      >
-                        <Icon name="Square" size={24} className="mr-2" />
-                        Стоп
-                      </Button>
-                    )}
-
-                    <Button 
-                      size="lg" 
-                      variant="outline"
-                      className="w-full h-12"
-                      onClick={handleBuyAttempts}
-                    >
-                      <Icon name="Plus" size={20} className="mr-2" />
-                      Купить попытку за 150₽
-                    </Button>
-                  </div>
-
-                  {attempts === 0 && (
-                    <div className="mt-4 p-4 bg-destructive/10 rounded-lg text-center">
-                      <p className="text-sm text-destructive font-semibold">
-                        У вас закончились попытки! Купите ещё, чтобы продолжить игру.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {wonPrize && (
-                <Card className="border-2 border-secondary animate-scale-in">
-                  <CardContent className="p-6">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-secondary to-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Icon name="Trophy" size={32} className="text-white" />
-                      </div>
-                      <h3 className="text-2xl font-heading font-bold mb-2">Поздравляем!</h3>
-                      <p className="text-lg mb-4">Вы выиграли:</p>
-                      <div className="inline-block px-6 py-3 bg-secondary/20 rounded-xl">
-                        <p className="text-2xl font-bold text-secondary">{wonPrize.name}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            <div>
-              <Card className="overflow-hidden">
-                <CardContent className="p-8">
-                  <h2 className="text-2xl font-heading font-bold mb-6 text-center">Колесо призов</h2>
-                  
-                  <div className="relative w-full aspect-square max-w-md mx-auto">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                      <div className="w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[30px] border-t-secondary drop-shadow-lg"></div>
-                    </div>
-
-                    <div 
-                      className="w-full h-full rounded-full relative transition-transform duration-[4000ms] ease-out"
-                      style={{ 
-                        transform: `rotate(${rotation}deg)`,
-                        background: `conic-gradient(${prizes.map((p, i) => 
-                          `${p.color} ${(i * 360) / prizes.length}deg ${((i + 1) * 360) / prizes.length}deg`
-                        ).join(', ')})`
-                      }}
-                    >
-                      <div className="absolute inset-0 rounded-full border-8 border-card shadow-2xl"></div>
-                      
-                      {prizes.map((prize, index) => {
-                        const angle = (index * 360) / prizes.length + 180 / prizes.length;
-                        const radius = 40;
-                        return (
-                          <div
-                            key={prize.id}
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                            style={{
-                              transform: `rotate(${angle}deg) translateY(-${radius}%)`,
-                            }}
-                          >
-                            <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
-                              <Icon name={prize.icon as any} size={24} className="text-gray-800" />
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-card rounded-full border-4 border-secondary shadow-xl flex items-center justify-center">
-                          <Icon name="Sparkles" size={28} className="text-primary" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 grid grid-cols-2 gap-3">
-                    {prizes.map((prize) => (
-                      <div 
-                        key={prize.id} 
-                        className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
-                      >
-                        <div 
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: prize.color }}
-                        ></div>
-                        <span className="text-xs text-muted-foreground truncate">{prize.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+      <section className="bg-gradient-to-br from-blue-50 to-blue-100 py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Найдите мастера рядом с вами
+            </h1>
+            <p className="text-lg text-muted-foreground mb-8">
+              Профессионалы для любой задачи: клининг, ремонт, красота и многое другое
+            </p>
+            
+            <div className="flex flex-col md:flex-row gap-3 max-w-2xl mx-auto">
+              <div className="flex-1 relative">
+                <Icon name="Search" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <Input
+                  placeholder="Что вам нужно? (например, клининг)"
+                  className="pl-10 h-12 text-base"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex-1 relative">
+                <Icon name="MapPin" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <Input
+                  placeholder="Ваш город или адрес"
+                  className="pl-10 h-12 text-base"
+                />
+              </div>
+              <Button className="h-12 px-8 text-base" onClick={() => navigate('/catalog')}>
+                Найти
+              </Button>
             </div>
           </div>
         </div>
-      </main>
+      </section>
+
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Популярные категории</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category) => (
+              <Card 
+                key={category.id}
+                className="p-6 hover:shadow-lg transition cursor-pointer flex flex-col items-center gap-3 text-center"
+              >
+                <div className="bg-primary/10 p-4 rounded-full">
+                  <Icon name={category.icon as any} className="text-primary" size={32} />
+                </div>
+                <span className="font-semibold">{category.name}</span>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-muted py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-4">Как это работает</h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Найти нужного специалиста стало проще, чем когда-либо
+          </p>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center">
+              <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                1
+              </div>
+              <h3 className="font-semibold text-xl mb-2">Выберите услугу</h3>
+              <p className="text-muted-foreground">
+                Укажите что вам нужно и где вы находитесь
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                2
+              </div>
+              <h3 className="font-semibold text-xl mb-2">Выберите мастера</h3>
+              <p className="text-muted-foreground">
+                Изучите профили, отзывы и рейтинги специалистов
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                3
+              </div>
+              <h3 className="font-semibold text-xl mb-2">Свяжитесь и договоритесь</h3>
+              <p className="text-muted-foreground">
+                Обсудите детали и договоритесь о времени работы
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12">Почему выбирают нас</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg h-fit">
+                  <Icon name="Shield" className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Проверенные специалисты</h3>
+                  <p className="text-muted-foreground">
+                    Все мастера проходят верификацию и имеют подтвержденный опыт
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg h-fit">
+                  <Icon name="Star" className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Честные отзывы</h3>
+                  <p className="text-muted-foreground">
+                    Реальные отзывы от клиентов помогут сделать правильный выбор
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg h-fit">
+                  <Icon name="MapPin" className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Мастера рядом</h3>
+                  <p className="text-muted-foreground">
+                    Находите специалистов в вашем районе для быстрого выполнения заказа
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg h-fit">
+                  <Icon name="Clock" className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Быстрый поиск</h3>
+                  <p className="text-muted-foreground">
+                    Найдите подходящего мастера за несколько минут
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-foreground text-background py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Icon name="Briefcase" className="text-primary" size={28} />
+                <span className="text-xl font-bold">Сервис Агрегатор</span>
+              </div>
+              <p className="text-background/70">
+                Профессиональные услуги рядом с вами
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Категории</h4>
+              <ul className="space-y-2 text-background/70">
+                <li><a href="#" className="hover:text-primary transition">Клининг</a></li>
+                <li><a href="#" className="hover:text-primary transition">Красота</a></li>
+                <li><a href="#" className="hover:text-primary transition">Ремонт</a></li>
+                <li><a href="#" className="hover:text-primary transition">Все услуги</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Компания</h4>
+              <ul className="space-y-2 text-background/70">
+                <li><a href="#" className="hover:text-primary transition">О нас</a></li>
+                <li><a href="#" className="hover:text-primary transition">Стать мастером</a></li>
+                <li><a href="#" className="hover:text-primary transition">Контакты</a></li>
+                <li><a href="#" className="hover:text-primary transition">Помощь</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Контакты</h4>
+              <ul className="space-y-2 text-background/70">
+                <li className="flex items-center gap-2">
+                  <Icon name="Mail" size={16} />
+                  info@service.ru
+                </li>
+                <li className="flex items-center gap-2">
+                  <Icon name="Phone" size={16} />
+                  8 800 555-35-35
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-background/20 mt-8 pt-8 text-center text-background/70">
+            <p>&copy; 2025 Сервис Агрегатор. Все права защищены.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
